@@ -23,19 +23,30 @@ func main() {
 	fileContent := string(dat)
 	lines := strings.Split(fileContent, "\n")
 
+	maxColLength := generateSliceMaxLength(lines)
+	// fmt.Println(maxColLength)
+	outFileName := generateOutFileName(fileName)
+
+	f, err := os.Create(outFileName)
+	defer f.Close()
+
 	for index, line := range lines {
 		values := strings.Split(line, ",")
+		for i, value := range values {
+			values[i] = value + strings.Repeat(" ", maxColLength[i]-len(value))
+		}
 		formattedLine := strings.Join(values, " | ")
+		// fmt.Println(formattedLine)
 		separator := strings.Repeat("-", len(formattedLine))
 
 		if index == 0 {
 			separator = strings.Repeat("=", len(formattedLine))
-			fmt.Println(separator)
 		}
 
-		fmt.Print(formattedLine)
-		fmt.Println("")
-		fmt.Println(separator)
+		// fmt.Print(formattedLine)
+		f.WriteString(formattedLine + "\n")
+		// fmt.Println(separator)
+		f.WriteString(separator + "\n")
 
 	}
 
@@ -47,10 +58,32 @@ func printIntro(fileName string) {
 	fmt.Println("==================")
 }
 
-// returns a map containing the max length of words in each column
+// returns a slice containing the max length of words in each column
 // colNum -> maxColLength
-func generateMapMaxLength() map[string]int {
-	rv := make(map[string]int)
+func generateSliceMaxLength(lines []string) []int {
+	var rv []int
 
+	for _, line := range lines {
+
+		values := strings.Split(line, ",")
+		for index, value := range values {
+			wordLen := len(value)
+			if len(rv) < len(values) {
+				// fmt.Println("          ", len(rv), len(values))
+				rv = append(rv, wordLen)
+			}
+			if rv[index] < wordLen {
+				rv[index] = wordLen
+			}
+		}
+	}
 	return rv
+}
+
+func generateOutFileName(fileName string) string {
+	nameSep := strings.LastIndex(fileName, ".")
+
+	rawFileName := fileName[:nameSep]
+
+	return rawFileName + "_table.txt"
 }
