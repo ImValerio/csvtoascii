@@ -31,7 +31,7 @@ func main() {
 	defer f.Close()
 
 	for index, line := range lines {
-		values := strings.Split(line, ",")
+		values := splitRespectingQuotes(line, ',')
 		for i, value := range values {
 			values[i] = value + strings.Repeat(" ", maxColLength[i]-len(value))
 		}
@@ -65,7 +65,7 @@ func generateSliceMaxLength(lines []string) []int {
 
 	for _, line := range lines {
 
-		values := strings.Split(line, ",")
+		values := splitRespectingQuotes(line, ',')
 		for index, value := range values {
 			wordLen := len(value)
 			if len(rv) < len(values) {
@@ -86,4 +86,27 @@ func generateOutFileName(fileName string) string {
 	rawFileName := fileName[:nameSep]
 
 	return rawFileName + "_table.txt"
+}
+
+func splitRespectingQuotes(str string, delimiter rune) []string {
+	var result []string
+	current := ""
+	quoted := false
+
+	for _, char := range str {
+		if char == delimiter && !quoted {
+			result = append(result, current)
+			current = ""
+		} else if char == '"' {
+			quoted = !quoted
+		} else {
+			current += string(char)
+		}
+	}
+
+	if len(current) > 0 {
+		result = append(result, current)
+	}
+
+	return result
 }
