@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -15,8 +16,39 @@ func main() {
 	}
 
 	fileName := os.Args[1]
+	var fileNames []string
 
-	printIntro(fileName)
+	if strings.Contains(fileName, ";") {
+		fileNames = strings.Split(fileName, ";")
+	}
+
+	if len(fileNames) > 1 {
+
+		printIntro(fileNames)
+		multiFileProcess(fileNames)
+	} else {
+		printIntro([]string{fileName})
+		processCsv(fileName)
+	}
+
+	fmt.Println("Total process time: ", time.Since(start))
+}
+
+func multiFileProcess(fileNames []string) {
+	var wg sync.WaitGroup
+
+	for _, fileName := range fileNames {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			processCsv(fileName)
+		}()
+	}
+	wg.Wait()
+}
+
+func processCsv(fileName string) {
+	start := time.Now()
 
 	dat, err := os.ReadFile(fmt.Sprint("./", fileName))
 	if err != nil {
@@ -61,16 +93,18 @@ func main() {
 
 	}
 
-	fmt.Print("Processed "+strconv.Itoa(len(lines)-1)+" lines in ", time.Since(start))
+	fmt.Println("Processed "+strconv.Itoa(len(lines)-1)+" lines in ", time.Since(start))
 
 }
 func hasTrailingNewline(str string) bool {
 	return len(str) > 0 && str[len(str)-1] == '\n'
 }
 
-func printIntro(fileName string) {
+func printIntro(fileNames []string) {
 	fmt.Println("=== CONVERTING ===")
-	fmt.Println(fileName)
+	for _, fileName := range fileNames {
+		fmt.Println(fileName)
+	}
 	fmt.Println("==================")
 }
 
