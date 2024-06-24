@@ -3,10 +3,13 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 func main() {
+	start := time.Now()
 	if len(os.Args) < 2 {
 		panic("You must specify the file name :( ")
 	}
@@ -28,6 +31,9 @@ func main() {
 	outFileName := generateOutFileName(fileName)
 
 	f, err := os.Create(outFileName)
+	if err != nil {
+		panic(err)
+	}
 	defer f.Close()
 
 	for index, line := range lines {
@@ -44,12 +50,22 @@ func main() {
 		}
 
 		// fmt.Print(formattedLine)
-		f.WriteString(formattedLine + "\n")
+		if hasTrailingNewline(formattedLine) {
+			f.WriteString(formattedLine)
+		} else {
+			f.WriteString(formattedLine + "\n")
+		}
+
 		// fmt.Println(separator)
 		f.WriteString(separator + "\n")
 
 	}
 
+	fmt.Print("Processed "+strconv.Itoa(len(lines)-1)+" lines in ", time.Since(start))
+
+}
+func hasTrailingNewline(str string) bool {
+	return len(str) > 0 && str[len(str)-1] == '\n'
 }
 
 func printIntro(fileName string) {
