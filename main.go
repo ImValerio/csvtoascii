@@ -23,15 +23,29 @@ func main() {
 	}
 
 	if len(fileNames) > 1 {
-
+		isCsvFile(fileNames)
 		printIntro(fileNames)
 		multiFileProcess(fileNames)
 	} else {
+		isCsvFile([]string{fileName})
 		printIntro([]string{fileName})
 		processCsv(fileName)
 	}
 
 	fmt.Println("Total process time: ", time.Since(start))
+}
+
+func isCsvFile(fileNames []string) bool {
+
+	for _, fileName := range fileNames {
+		ext := fileName[strings.LastIndex(fileName, "."):]
+
+		if ext != ".csv" {
+			return false
+		}
+	}
+
+	return true
 }
 
 func multiFileProcess(fileNames []string) {
